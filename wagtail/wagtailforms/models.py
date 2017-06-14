@@ -6,7 +6,7 @@ import os
 from django.contrib.contenttypes.models import ContentType
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.six import text_type
 from django.utils.text import slugify
@@ -241,23 +241,26 @@ class AbstractForm(Page):
             if form.is_valid():
                 self.process_form_submission(form)
 
-                # render the landing_page
-                # TODO: It is much better to redirect to it
-                return render(
-                    request,
-                    self.get_landing_page_template(request),
-                    self.get_context(request)
-                )
+                # redirect to landing_page
+                return redirect(''.join([self.url, '?success']))
         else:
             form = self.get_form(page=self, user=request.user)
 
         context = self.get_context(request)
         context['form'] = form
-        return render(
-            request,
-            self.get_template(request),
-            context
-        )
+
+        if 'success' in request.GET:
+            return render(
+                request,
+                self.get_landing_page_template(request),
+                self.get_context(request)
+            )
+        else:
+            return render(
+                request,
+                self.get_template(request),
+                context
+            )
 
     preview_modes = [
         ('form', 'Form'),
